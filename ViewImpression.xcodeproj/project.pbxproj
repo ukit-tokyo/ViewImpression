@@ -143,6 +143,8 @@
 			dependencies = (
 			);
 			name = ViewImpression;
+			packageProductDependencies = (
+			);
 			productName = ViewImpression;
 			productReference = B6F9123028EC49C0004F63AF /* ViewImpression.app */;
 			productType = "com.apple.product-type.application";
@@ -215,6 +217,8 @@
 				Base,
 			);
 			mainGroup = B6F9122728EC49C0004F63AF;
+			packageReferences = (
+			);
 			productRefGroup = B6F9123128EC49C0004F63AF /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
