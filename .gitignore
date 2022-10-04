@@ -1,0 +1,67 @@
+# Mac
+.DS_Store
+
+# Xcode
+Build/*
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+*.xcworkspace
+!default.xcworkspace
+xcuserdata
+profile
+*.moved-aside
+DerivedData
+
+# Obj-C/Swift specific
+*.hmap
+
+# App packaging
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Playgrounds
+timeline.xctimeline
+playground.xcworkspace
+
+# CocoaPod
+Pods/*
+
+# Carthage
+Carthage/Checkouts
+Carthage/Build
+
+# CoreML Models
+*.mlmodel
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/*
+fastlane/test_output
+
+# Bundler
+vendor/*
+.bundle/*
+
+# codesigndoc
+codesigndoc_exports/
+
+# LLVM Code Coverage
+default.profraw
+
+# LicensePlist
+*LicensePlist.latest_result.txt
+
+# direnv
+.env
+
+# Flutter
+Flutter/*
+
