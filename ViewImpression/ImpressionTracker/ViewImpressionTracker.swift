@@ -29,7 +29,7 @@ final class TableViewImpressionTracker {
   }
 
   private let config: Configuration
-
+  private var trackedIndexPaths: Set<IndexPath> = []
   private let indexPathsForTracking = Observable<[IndexPath]>([])
   var trackingIndexPaths: Signal<[IndexPath], Never> {
     indexPathsForTracking.toSignal()
@@ -45,13 +45,14 @@ final class TableViewImpressionTracker {
 
   private func bind(tableView: UITableView) {
     let indexPathsForVisibleRows = tableView.reactive.keyPath(\.indexPathsForVisibleRows)
-    // contentOffset の変化を監視
-    tableView.reactive.keyPath(\.contentOffset)
-      // offset が変化した時に画面に表示されてるの Cell の index を全て取得
-      .flatMap(.latest) { _ in indexPathsForVisibleRows }
+    tableView.reactive.keyPath(\.contentOffset) // contentOffset の変化を監視
+      .flatMap(.latest) { _ in
+        // offset 変化時に画面表示中の Cell の index を全て取得
+        indexPathsForVisibleRows
+      }
       .compactMap { $0 }
-      // 画面に表示中の Cell の内、計測対象の閾値を満たす Cell の Index にフィルタ
-      .map { visibleIndexPaths in
+      .map { [unowned self] visibleIndexPaths in
+        // 画面表示中の Cell の内、計測対象の閾値を満たす Cell の Index にフィルタ
         let tableViewContentRect = CGRect(
           x: tableView.contentOffset.x,
           y: tableView.contentOffset.y,
@@ -59,7 +60,7 @@ final class TableViewImpressionTracker {
           height: tableView.bounds.height
         )
 
-        return visibleIndexPaths.filter { [unowned self] indexPath in
+        return visibleIndexPaths.filter { indexPath in
           guard let cell = tableView.cellForRow(at: indexPath) else { return false }
           let cellRect = cell.contentView.convert(cell.contentView.bounds, to: tableView)
           let thresholdPoints = self.getThresholdPoints(from: cellRect)
@@ -69,6 +70,14 @@ final class TableViewImpressionTracker {
         }
       }
       .removeDuplicates()
+      .map { [unowned self] trackingIndexPaths in
+        // 既に表示済み（計測済み）の Cell の Index を除外することで重複して計測されるのを防ぐ
+        let filteredIndexPaths = trackingIndexPaths.filter { indexPath in
+          !self.trackedIndexPaths.contains(indexPath)
+        }
+        self.cacheTrackedIndexPath(filteredIndexPaths)
+        return filteredIndexPaths
+      }
       .bind(to: indexPathsForTracking)
   }
 
@@ -84,23 +93,27 @@ final class TableViewImpressionTracker {
       bottomPoint: CGPoint(x: bottomPoint.x, y: bottomPoint.y - thresholdHeight)
     )
   }
+
+  /// 計測済みの Cell の Index をキャッシュする
+  private func cacheTrackedIndexPath(_ indexPaths: [IndexPath]) {
+    indexPaths.forEach { indexPath in
+      trackedIndexPaths.insert(indexPath)
+    }
+  }
 }
 
 extension TableViewImpressionTracker {
   struct Configuration {
     let trackingCellHeightRetio: Double
-    let trackingImpressionSeccond: Double
+    let trackingImpressionSecond: TimeInterval
 
-    init(trackingCellHeightRetio: Double, trackingImpressionSeccond: Double) {
-      guard trackingCellHeightRetio <= 1 else {
-        fatalError("`trackingCellHeightRetio` must be less than or equal to 1")
-      }
-      self.trackingCellHeightRetio = trackingCellHeightRetio
-      self.trackingImpressionSeccond = trackingImpressionSeccond
+    init(trackingCellHeightRetio: Double, trackingImpressionSeccond: TimeInterval) {
+      self.trackingCellHeightRetio = min(1.0, trackingCellHeightRetio)
+      self.trackingImpressionSecond = max(0.0, trackingImpressionSeccond)
     }
 
     static var `default`: Configuration {
-      Configuration(trackingCellHeightRetio: 2/3, trackingImpressionSeccond: 2)
+      Configuration(trackingCellHeightRetio: 2/3, trackingImpressionSeccond: 2.0)
     }
   }
 }
