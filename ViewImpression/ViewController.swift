@@ -7,11 +7,18 @@
 
 import UIKit
 
-class ViewController: UIViewController {
-  private let tableView = UITableView()
+class ViewController: UIViewController, TableViewImpressionTrackable {
+  let tableView = UITableView()
+  let impressionTracker = TableViewImpressionTracker()
 
   override func viewDidLoad() {
     super.viewDidLoad()
+
+    setupImpressionTracker()
+    impressionTracker.trackingIndexPaths
+      .bind(to: self) { me, indexPaths  in
+        print("testing___indexPaths", indexPaths)
+      }
 
     tableView.dataSource = self
     tableView.register(Cell.self, forCellReuseIdentifier: "Cell")

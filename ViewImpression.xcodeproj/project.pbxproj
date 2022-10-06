@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B615EA3B28EC6842006E08B6 /* ViewImpressionTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = B615EA3A28EC6842006E08B6 /* ViewImpressionTracker.swift */; };
+		B615EA3E28EC6D42006E08B6 /* Bond in Frameworks */ = {isa = PBXBuildFile; productRef = B615EA3D28EC6D42006E08B6 /* Bond */; };
 		B6F9123428EC49C0004F63AF /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6F9123328EC49C0004F63AF /* AppDelegate.swift */; };
 		B6F9123628EC49C0004F63AF /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6F9123528EC49C0004F63AF /* SceneDelegate.swift */; };
 		B6F9123828EC49C0004F63AF /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6F9123728EC49C0004F63AF /* ViewController.swift */; };
@@ -36,6 +38,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		B615EA3A28EC6842006E08B6 /* ViewImpressionTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewImpressionTracker.swift; sourceTree = "<group>"; };
 		B6F9123028EC49C0004F63AF /* ViewImpression.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ViewImpression.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B6F9123328EC49C0004F63AF /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		B6F9123528EC49C0004F63AF /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -56,6 +59,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B615EA3E28EC6D42006E08B6 /* Bond in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -76,6 +80,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		B615EA3928EC653A006E08B6 /* ImpressionTracker */ = {
+			isa = PBXGroup;
+			children = (
+				B615EA3A28EC6842006E08B6 /* ViewImpressionTracker.swift */,
+			);
+			path = ImpressionTracker;
+			sourceTree = "<group>";
+		};
 		B6F9122728EC49C0004F63AF = {
 			isa = PBXGroup;
 			children = (
@@ -99,6 +111,7 @@
 		B6F9123228EC49C0004F63AF /* ViewImpression */ = {
 			isa = PBXGroup;
 			children = (
+				B615EA3928EC653A006E08B6 /* ImpressionTracker */,
 				B6F9123328EC49C0004F63AF /* AppDelegate.swift */,
 				B6F9123528EC49C0004F63AF /* SceneDelegate.swift */,
 				B6F9123728EC49C0004F63AF /* ViewController.swift */,
@@ -144,6 +157,7 @@
 			);
 			name = ViewImpression;
 			packageProductDependencies = (
+				B615EA3D28EC6D42006E08B6 /* Bond */,
 			);
 			productName = ViewImpression;
 			productReference = B6F9123028EC49C0004F63AF /* ViewImpression.app */;
@@ -218,6 +232,7 @@
 			);
 			mainGroup = B6F9122728EC49C0004F63AF;
 			packageReferences = (
+				B615EA3C28EC6D42006E08B6 /* XCRemoteSwiftPackageReference "Bond" */,
 			);
 			productRefGroup = B6F9123128EC49C0004F63AF /* Products */;
 			projectDirPath = "";
@@ -264,6 +279,7 @@
 			files = (
 				B6F9123828EC49C0004F63AF /* ViewController.swift in Sources */,
 				B6F9123428EC49C0004F63AF /* AppDelegate.swift in Sources */,
+				B615EA3B28EC6842006E08B6 /* ViewImpressionTracker.swift in Sources */,
 				B6F9123628EC49C0004F63AF /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -606,6 +622,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		B615EA3C28EC6D42006E08B6 /* XCRemoteSwiftPackageReference "Bond" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/DeclarativeHub/Bond";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		B615EA3D28EC6D42006E08B6 /* Bond */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B615EA3C28EC6D42006E08B6 /* XCRemoteSwiftPackageReference "Bond" */;
+			productName = Bond;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = B6F9122828EC49C0004F63AF /* Project object */;
 }
