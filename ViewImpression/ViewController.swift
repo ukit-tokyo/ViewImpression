@@ -15,9 +15,9 @@ class ViewController: UIViewController, TableViewImpressionTrackable {
     super.viewDidLoad()
 
     setupImpressionTracker()
-    impressionTracker.trackingIndexPaths
-      .bind(to: self) { me, indexPaths  in
-        print("testing___indexPaths", indexPaths)
+    impressionTracker.trackingIndexPath
+      .bind(to: self) { me, indexPath  in
+        print("testing___indexPaths", indexPath)
       }
 
     tableView.dataSource = self

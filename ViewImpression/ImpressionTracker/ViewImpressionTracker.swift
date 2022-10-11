@@ -9,6 +9,19 @@ import UIKit
 import ReactiveKit
 import Bond
 
+// MARK: - Extensions
+private extension UITableView {
+  /// 現在のoffsetを元に、相対的なframeを取得する
+  var currentContentRect: CGRect {
+    CGRect(
+      x: self.contentOffset.x,
+      y: self.contentOffset.y,
+      width: self.bounds.width,
+      height: self.bounds.height
+    )
+  }
+}
+
 // MARK: - TableViewImpressionTrackable
 protocol TableViewImpressionTrackable where Self: UIViewController {
   var tableView: UITableView { get }
@@ -30,9 +43,9 @@ final class TableViewImpressionTracker {
 
   private let config: Configuration
   private var trackedIndexPaths: Set<IndexPath> = []
-  private let indexPathsForTracking = Observable<[IndexPath]>([])
-  var trackingIndexPaths: Signal<[IndexPath], Never> {
-    indexPathsForTracking.toSignal()
+  private let indexPathForTracking = Observable<IndexPath>([])
+  var trackingIndexPath: Signal<IndexPath, Never> {
+    indexPathForTracking.toSignal()
   }
 
   init(config: Configuration = .default) {
@@ -53,32 +66,26 @@ final class TableViewImpressionTracker {
       .compactMap { $0 }
       .map { [unowned self] visibleIndexPaths in
         // 画面表示中の Cell の内、計測対象の閾値を満たす Cell の Index にフィルタ
-        let tableViewContentRect = CGRect(
-          x: tableView.contentOffset.x,
-          y: tableView.contentOffset.y,
-          width: tableView.bounds.width,
-          height: tableView.bounds.height
-        )
+        let tableViewCurrentContentRect = tableView.currentContentRect
 
         return visibleIndexPaths.filter { indexPath in
           guard let cell = tableView.cellForRow(at: indexPath) else { return false }
           let cellRect = cell.contentView.convert(cell.contentView.bounds, to: tableView)
           let thresholdPoints = self.getThresholdPoints(from: cellRect)
 
-          return tableViewContentRect.contains(thresholdPoints.topPoint)
-            && tableViewContentRect.contains(thresholdPoints.bottomPoint)
+          return tableViewCurrentContentRect.contains(thresholdPoints.topPoint)
+            && tableViewCurrentContentRect.contains(thresholdPoints.bottomPoint)
         }
       }
       .removeDuplicates()
-      .map { [unowned self] trackingIndexPaths in
-        // 既に表示済み（計測済み）の Cell の Index を除外することで重複して計測されるのを防ぐ
-        let filteredIndexPaths = trackingIndexPaths.filter { indexPath in
-          !self.trackedIndexPaths.contains(indexPath)
-        }
-        self.cacheTrackedIndexPath(filteredIndexPaths)
-        return filteredIndexPaths
+      .flattenElements()
+      .filter { [unowned self] trackingIndexPath in
+        /// 一度表示（計測）された Cell の Index はキャッシュして、重複してイベントを流さない
+        guard !self.trackedIndexPaths.contains(trackingIndexPath) else { return false }
+        self.trackedIndexPaths.insert(trackingIndexPath)
+        return true
       }
-      .bind(to: indexPathsForTracking)
+      .bind(to: indexPathForTracking)
   }
 
   private func getThresholdPoints(from originalRect: CGRect) -> ThresholdPoints {
@@ -92,13 +99,6 @@ final class TableViewImpressionTracker {
       topPoint: CGPoint(x: topPoint.x, y: topPoint.y + thresholdHeight),
       bottomPoint: CGPoint(x: bottomPoint.x, y: bottomPoint.y - thresholdHeight)
     )
-  }
-
-  /// 計測済みの Cell の Index をキャッシュする
-  private func cacheTrackedIndexPath(_ indexPaths: [IndexPath]) {
-    indexPaths.forEach { indexPath in
-      trackedIndexPaths.insert(indexPath)
-    }
   }
 }
 
