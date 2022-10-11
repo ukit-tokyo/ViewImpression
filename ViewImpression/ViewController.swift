@@ -11,11 +11,19 @@ class ViewController: UIViewController, TableViewImpressionTrackable {
   let tableView = UITableView()
   let impressionTracker = TableViewImpressionTracker()
 
+  private lazy var resetButton: UIButton = {
+    let button = UIButton()
+    button.backgroundColor = .red
+    button.layer.cornerRadius = 15
+    button.layer.masksToBounds = true
+    return button
+  }()
+
   override func viewDidLoad() {
     super.viewDidLoad()
 
     setupImpressionTracker()
-    impressionTracker.trackingIndexPath
+    indexPathForTrackingImpression
       .bind(to: self) { me, indexPath  in
         print("testing___indexPaths", indexPath)
       }
@@ -29,6 +37,28 @@ class ViewController: UIViewController, TableViewImpressionTrackable {
     tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor).isActive = true
     tableView.leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
     tableView.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
+
+    view.addSubview(resetButton)
+    resetButton.translatesAutoresizingMaskIntoConstraints = false
+    resetButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20).isActive = true
+    resetButton.rightAnchor.constraint(equalTo: view.rightAnchor, constant: -20).isActive = true
+    resetButton.widthAnchor.constraint(equalToConstant: 30).isActive = true
+    resetButton.heightAnchor.constraint(equalToConstant: 30).isActive = true
+    resetButton.addTarget(self, action: #selector(resetImpression), for: .touchUpInside)
+  }
+
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    startImpressionTracking()
+  }
+
+  override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    stopImpressionTracking()
+  }
+
+  @objc func resetImpression() {
+    restartImpressionTracking()
   }
 }
 
