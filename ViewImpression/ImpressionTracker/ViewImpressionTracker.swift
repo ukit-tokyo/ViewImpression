@@ -59,29 +59,23 @@ final class TableViewImpressionTracker {
   private func bind(tableView: UITableView) {
     let indexPathsForVisibleRows = tableView.reactive.keyPath(\.indexPathsForVisibleRows)
     tableView.reactive.keyPath(\.contentOffset) // contentOffset の変化を監視
-      .flatMap(.latest) { _ in
+      .flatMapLatest { _ in
         // offset 変化時に画面表示中の Cell の index を全て取得
         indexPathsForVisibleRows
       }
-      .compactMap { $0 }
-      .map { [unowned self] visibleIndexPaths in
-        // 画面表示中の Cell の内、計測対象の閾値を満たす Cell の Index にフィルタ
-        let tableViewCurrentContentRect = tableView.currentContentRect
-
-        return visibleIndexPaths.filter { indexPath in
-          guard let cell = tableView.cellForRow(at: indexPath) else { return false }
-          let cellRect = cell.contentView.convert(cell.contentView.bounds, to: tableView)
-          let thresholdPoints = self.getThresholdPoints(from: cellRect)
-
-          return tableViewCurrentContentRect.contains(thresholdPoints.topPoint)
-            && tableViewCurrentContentRect.contains(thresholdPoints.bottomPoint)
-        }
+      .ignoreNils()
+      .flattenElements()
+      .filter { [unowned self] visibleIndexPath in
+        // 画面表示中の Cell のうち、計測対象の閾値を満たす Cell の Index にフィルタする
+        self.containsCurrentContentRect(in: tableView, at: visibleIndexPath)
       }
       .removeDuplicates()
-      .flattenElements()
+      .flatMapMerge { [unowned self] trackingIndexPath in
+        self.checkCellDisplayedContinuously(in: tableView, at: trackingIndexPath)
+      }
       .filter { [unowned self] trackingIndexPath in
         /// 一度表示（計測）された Cell の Index はキャッシュして、重複してイベントを流さない
-        guard !self.trackedIndexPaths.contains(trackingIndexPath) else { return false }
+        if self.trackedIndexPaths.contains(trackingIndexPath) { return false }
         self.trackedIndexPaths.insert(trackingIndexPath)
         return true
       }
@@ -100,8 +94,45 @@ final class TableViewImpressionTracker {
       bottomPoint: CGPoint(x: bottomPoint.x, y: bottomPoint.y - thresholdHeight)
     )
   }
+
+  /// 評価対象のCellのIndexが、「表示中」の閾値を満たしているかどうか
+  private func containsCurrentContentRect(in tableView: UITableView, at indexPath: IndexPath) -> Bool {
+    let tableViewCurrentContentRect = tableView.currentContentRect
+
+    guard let cell = tableView.cellForRow(at: indexPath) else { return false }
+    let cellRect = cell.contentView.convert(cell.contentView.bounds, to: tableView)
+    let thresholdPoints = getThresholdPoints(from: cellRect)
+
+    return tableViewCurrentContentRect.contains(thresholdPoints.topPoint)
+      && tableViewCurrentContentRect.contains(thresholdPoints.bottomPoint)
+  }
+
+  /// 評価対象のCellのIndexが、n秒間表示され続けたかを0.5秒間隔でチェックする
+  private func checkCellDisplayedContinuously(in tableView: UITableView, at indexPath: IndexPath) ->  Signal<IndexPath, Never> {
+    var limitSecond = config.trackingImpressionSecond
+    let interval = 0.5 // second
+
+    return Signal { observer in
+      Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] timer in
+        guard let self else { return }
+        // カウントダウン
+        limitSecond -= interval
+
+        if !self.containsCurrentContentRect(in: tableView, at: indexPath) {
+          timer.invalidate()
+        }
+        if limitSecond <= 0 {
+          print("testing___check", indexPath)
+          observer.receive(indexPath)
+          timer.invalidate()
+        }
+      }
+      return NonDisposable.instance
+    }
+  }
 }
 
+// MARK: - Configuration
 extension TableViewImpressionTracker {
   struct Configuration {
     let trackingCellHeightRetio: Double
